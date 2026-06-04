@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4日目　不動産価格が上がっている仕組み</title>
+<style>
+  :root{
+    --navy:#15233f;
+    --navy-soft:#22365c;
+    --gold:#c8a45c;
+    --ink:#1d2430;
+    --muted:#6b7585;
+    --bg:#f4f1ea;
+    --line:#e2ddd2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,"Noto Sans JP",sans-serif;
+    background:#0d1626;
+    color:var(--ink);
+    overflow:hidden;
+  }
+  .deck{height:100vh;width:100vw;position:relative;}
+  .slide{
+    position:absolute;inset:0;
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    padding:6vh 8vw;
+    background:var(--bg);
+    opacity:0;
+    transition:opacity .25s ease;
+  }
+  .slide.active{display:flex;opacity:1;}
+  .kicker{
+    font-size:1.05rem;letter-spacing:.18em;color:var(--gold);
+    font-weight:700;margin-bottom:1.4rem;
+  }
+  h1{font-size:3.4rem;line-height:1.25;color:var(--navy);font-weight:800;letter-spacing:.01em;}
+  h2{font-size:2.5rem;line-height:1.3;color:var(--navy);font-weight:800;margin-bottom:1.6rem;}
+  .lead{font-size:1.4rem;color:var(--muted);margin-top:1.6rem;line-height:1.7;font-weight:500;}
+  p{font-size:1.35rem;line-height:1.8;color:var(--ink);}
+  ul{list-style:none;margin-top:.6rem;}
+  li{
+    font-size:1.4rem;line-height:1.7;padding:.55rem 0 .55rem 2rem;position:relative;color:var(--ink);
+  }
+  li::before{content:"";position:absolute;left:0;top:1.25rem;width:.7rem;height:.7rem;background:var(--gold);border-radius:2px;}
+  .big-stats{display:flex;gap:2.5rem;flex-wrap:wrap;margin-top:1.5rem;}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.6rem 1.8rem;min-width:230px;box-shadow:0 8px 24px rgba(21,35,63,.06);}
+  .stat .num{font-size:2.9rem;font-weight:800;color:var(--navy);line-height:1.1;}
+  .stat .num small{font-size:1.3rem;color:var(--gold);font-weight:800;margin-left:.3rem;}
+  .stat .cap{font-size:1.05rem;color:var(--muted);margin-top:.5rem;line-height:1.5;}
+  .forces{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-top:1.2rem;}
+  .force{background:#fff;border:1px solid var(--line);border-top:5px solid var(--gold);border-radius:12px;padding:1.3rem 1rem;text-align:center;}
+  .force .n{font-size:1.05rem;color:var(--gold);font-weight:800;}
+  .force .t{font-size:1.25rem;font-weight:800;color:var(--navy);margin:.5rem 0;line-height:1.4;}
+  .force .d{font-size:.95rem;color:var(--muted);line-height:1.5;}
+  .num-hero{font-size:2.2rem;font-weight:800;color:var(--gold);margin:1rem 0;}
+  .tag{display:inline-block;background:var(--navy);color:#fff;font-size:1rem;font-weight:700;padding:.4rem 1rem;border-radius:999px;margin-bottom:1.4rem;letter-spacing:.05em;}
+  .note{margin-top:1.8rem;font-size:1.15rem;color:var(--muted);border-left:4px solid var(--gold);padding-left:1.2rem;line-height:1.7;}
+  .cover{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-soft) 100%);}
+  .cover .kicker{color:var(--gold);}
+  .cover h1{color:#fff;}
+  .cover .lead{color:#c7d0e0;}
+  .cover .meta{margin-top:3rem;color:#9fb0cc;font-size:1.1rem;letter-spacing:.05em;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.8rem 2rem;}
+  .card h3{font-size:1.5rem;color:var(--navy);margin-bottom:1rem;font-weight:800;}
+  .work h2{color:var(--navy);}
+  .work .step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.4rem 1.8rem;margin-bottom:1.1rem;}
+  .work .step b{color:var(--gold);font-size:1.2rem;}
+  footer{position:absolute;bottom:2.2vh;left:8vw;right:8vw;display:flex;justify-content:space-between;align-items:center;font-size:.95rem;color:var(--muted);}
+  .progress{position:fixed;top:0;left:0;height:5px;background:var(--gold);width:0;transition:width .25s ease;z-index:10;}
+  .hint{position:fixed;bottom:14px;right:18px;font-size:.8rem;color:#9aa3b2;z-index:10;}
+  .src{margin-top:1.3rem;font-size:.9rem;color:#9aa3b2;letter-spacing:.01em;line-height:1.5;}
+  .chartwrap{background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.4rem 1.6rem .6rem;margin-top:.4rem;box-shadow:0 8px 24px rgba(21,35,63,.06);}
+  .chartwrap svg{width:100%;height:auto;display:block;}
+  .axis{stroke:#c9cfda;stroke-width:1.5;}
+  .grid{stroke:#edeaf0;stroke-width:1;}
+  .pline{fill:none;stroke:var(--navy);stroke-width:4;}
+  .parea{fill:var(--gold);opacity:.10;}
+  .pdot{fill:var(--gold);stroke:#fff;stroke-width:2.5;}
+  .plabel{fill:var(--navy);font-weight:800;font-size:20px;}
+  .axlabel{fill:var(--muted);font-size:17px;}
+  .ygridlabel{fill:#aab2c0;font-size:15px;}
+  .force-slide h2{margin-bottom:1rem;}
+  .force-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:2.2rem;align-items:center;margin-top:.3rem;}
+  .force-text p{font-size:1.25rem;}
+  .force-text .num-hero{font-size:1.55rem;margin:.9rem 0;}
+  .force-text .note{margin-top:1rem;font-size:1.05rem;}
+  .force-fig{background:#fff;border:1px solid var(--line);border-radius:12px;padding:.6rem;box-shadow:0 8px 24px rgba(21,35,63,.06);}
+  .force-fig img{width:100%;max-height:48vh;object-fit:contain;display:block;}
+  @media print{
+    body{overflow:visible;background:#fff;}
+    .slide{display:flex!important;opacity:1!important;position:relative;page-break-after:always;height:100vh;}
+    .progress,.hint{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 表紙 -->
+  <section class="slide cover active">
+    <div class="kicker">新人研修　4日目</div>
+    <h1>不動産価格が<br>上がっている仕組み</h1>
+    <p class="lead">「なんとなく高い」を、数字とメカニズムで説明できるようになる30分</p>
+    <div class="meta">コール事業部 ／ 訳あり不動産事業部　新人研修</div>
+  </section>
+
+  <!-- 2 ねらい -->
+  <section class="slide">
+    <div class="kicker">この回のゴール</div>
+    <h2>価格は「気分」では動かない</h2>
+    <p>家の値段は、金利・建築費・供給・海外マネー・人の集中という具体的な力で動いている。</p>
+    <ul>
+      <li>なぜ上がっているのかを、自分の言葉で説明できる</li>
+      <li>自分たちの仕事が、今どんな波の上にあるのかが見える</li>
+      <li>お客さんが「なぜ今」相談してくるのか、背景を想像できる</li>
+    </ul>
+    <div class="note">今日は精神論をやらない。本物の数字で押さえる。</div>
+  </section>
+
+  <!-- 3 現在地 -->
+  <section class="slide">
+    <div class="kicker">まず現在地（2025年）</div>
+    <h2>値段は最高値、数は史上最少</h2>
+    <div class="big-stats">
+      <div class="stat"><div class="num">9,182<small>万円</small></div><div class="cap">首都圏 新築マンション平均<br>前年比 約17%増・初の9千万円超</div></div>
+      <div class="stat"><div class="num">1.36<small>億円</small></div><div class="cap">東京23区 平均<br>前年比 約21.8%増</div></div>
+      <div class="stat"><div class="num">約2.2<small>万戸</small></div><div class="cap">首都圏 供給戸数<br>1973年以降で過去最少</div></div>
+    </div>
+    <div class="note">都心6区は1億9,503万円で2億円目前。23区の新築の半分以上が「億ション」。</div>
+  </section>
+
+  <!-- 3.5 折れ線グラフ -->
+  <section class="slide">
+    <div class="kicker">エビデンス｜10年の推移</div>
+    <h2>グラフで見る右肩上がり</h2>
+    <div class="chartwrap">
+      <svg viewBox="0 0 1000 440" role="img" aria-label="首都圏新築マンション平均価格の推移">
+        <!-- y grid + labels (5000〜9000万円) -->
+        <line class="grid" x1="110" y1="380" x2="960" y2="380"/>
+        <line class="grid" x1="110" y1="309" x2="960" y2="309"/>
+        <line class="grid" x1="110" y1="238" x2="960" y2="238"/>
+        <line class="grid" x1="110" y1="167" x2="960" y2="167"/>
+        <line class="grid" x1="110" y1="96"  x2="960" y2="96"/>
+        <text class="ygridlabel" x="98" y="385" text-anchor="end">5,000</text>
+        <text class="ygridlabel" x="98" y="314" text-anchor="end">6,000</text>
+        <text class="ygridlabel" x="98" y="243" text-anchor="end">7,000</text>
+        <text class="ygridlabel" x="98" y="172" text-anchor="end">8,000</text>
+        <text class="ygridlabel" x="98" y="101" text-anchor="end">9,000</text>
+        <!-- axes -->
+        <line class="axis" x1="110" y1="60" x2="110" y2="380"/>
+        <line class="axis" x1="110" y1="380" x2="960" y2="380"/>
+        <!-- area + line -->
+        <path class="parea" d="M110,343 L535,303 L790,160 L875,180 L960,83 L960,380 L110,380 Z"/>
+        <polyline class="pline" points="110,343 535,303 790,160 875,180 960,83"/>
+        <!-- dots -->
+        <circle class="pdot" cx="110" cy="343" r="7"/>
+        <circle class="pdot" cx="535" cy="303" r="7"/>
+        <circle class="pdot" cx="790" cy="160" r="7"/>
+        <circle class="pdot" cx="875" cy="180" r="7"/>
+        <circle class="pdot" cx="960" cy="83"  r="9"/>
+        <!-- value labels -->
+        <text class="plabel" x="118" y="333" text-anchor="start">5,518</text>
+        <text class="plabel" x="535" y="293" text-anchor="middle">6,083</text>
+        <text class="plabel" x="790" y="147" text-anchor="middle">8,101</text>
+        <text class="plabel" x="875" y="205" text-anchor="middle">7,820</text>
+        <text class="plabel" x="958" y="70" text-anchor="end">9,182</text>
+        <!-- x labels -->
+        <text class="axlabel" x="110" y="408" text-anchor="middle">2015</text>
+        <text class="axlabel" x="535" y="408" text-anchor="middle">2020</text>
+        <text class="axlabel" x="790" y="408" text-anchor="middle">2023</text>
+        <text class="axlabel" x="875" y="430" text-anchor="middle">2024</text>
+        <text class="axlabel" x="960" y="408" text-anchor="middle">2025</text>
+        <text class="axlabel" x="535" y="35" text-anchor="middle" style="font-weight:800;fill:#15233f;">首都圏 新築マンション平均価格（万円）</text>
+      </svg>
+    </div>
+    <div class="src">出典：不動産経済研究所「首都圏 新築分譲マンション市場動向」各年版。2023→2024は一時調整も、10年で約1.66倍。</div>
+  </section>
+
+  <!-- 4 5つの力 概観 -->
+  <section class="slide">
+    <div class="kicker">なぜ上がるのか</div>
+    <h2>価格を押し上げる5つの力</h2>
+    <div class="forces">
+      <div class="force"><div class="n">力 1</div><div class="t">低金利</div><div class="d">借りやすい＝高い家に手が届く</div></div>
+      <div class="force"><div class="n">力 2</div><div class="t">建築費高騰</div><div class="d">作るのが高い＝売値も高い</div></div>
+      <div class="force"><div class="n">力 3</div><div class="t">供給不足</div><div class="d">数が少ない＝取り合いになる</div></div>
+      <div class="force"><div class="n">力 4</div><div class="t">海外マネー</div><div class="d">円安で割安＝世界が買う</div></div>
+      <div class="force"><div class="n">力 5</div><div class="t">人の集中</div><div class="d">都市に人とお金が集まる</div></div>
+    </div>
+    <div class="note">5つが同時に効いているから、簡単には下がらない。</div>
+  </section>
+
+  <!-- 5 力1 -->
+  <section class="slide force-slide">
+    <span class="tag">力 1</span>
+    <h2>お金が借りやすい（低金利）</h2>
+    <div class="force-grid">
+      <div class="force-text">
+        <p>家は基本ローンで買う。金利が低い＝同じ給料でも借りられる額が大きい＝高い家に手が届く。</p>
+        <div class="num-hero">金利は数十年かけて低下。日銀は2025年12月に0.75%へ上げたが、変動金利はまだ0.9〜1.1%台</div>
+        <div class="note">「上がってきたけど、まだ歴史的に安い」。この状態が需要を支えている。</div>
+      </div>
+      <div class="force-fig"><img src="images/force1_kinri.png" alt="長期金利の推移（政策金利・10年国債利回り）"></div>
+    </div>
+    <div class="src">出典：長期金利の推移（財務省公表資料より作成）。政策金利・10年国債利回りとも長期的に低下基調。</div>
+  </section>
+
+  <!-- 6 力2 -->
+  <section class="slide force-slide">
+    <span class="tag">力 2</span>
+    <h2>作るのが高い（建築費の高騰）</h2>
+    <div class="force-grid">
+      <div class="force-text">
+        <p>建てるコスト自体が上がっている。円安で輸入資材（鉄・木材）が高く、エネルギー高、職人の人手不足（2024・2025年問題）。</p>
+        <div class="num-hero">建築費の指数は 2009年=100 → 2025年 140.1（約4割の上昇）</div>
+        <div class="note">作るのが高ければ、売る値段も高くなる。</div>
+      </div>
+      <div class="force-fig"><img src="images/force2_kenchikuhi.jpg" alt="建築費と指数の推移（2009年=100）"></div>
+    </div>
+    <div class="src">出典：建築費指数（2009年=100、2025年140.1）。円安・資材高・人手不足が背景。</div>
+  </section>
+
+  <!-- 7 力3 -->
+  <section class="slide force-slide">
+    <span class="tag">力 3</span>
+    <h2>数が少ない（供給不足）</h2>
+    <div class="force-grid">
+      <div class="force-text">
+        <p>新築の供給は減り続けている。新築が高くて出てこないと、人は中古へ流れ、中古も値上がりする。</p>
+        <div class="num-hero">都内の新築分譲は2000年代のピークから減り続け、足元で最少水準</div>
+        <div class="note">「高いから買わない」ではなく「高くても取り合い」になっている。</div>
+      </div>
+      <div class="force-fig"><img src="images/force3_kyokyu.png" alt="都内の新築分譲マンション供給戸数の推移"></div>
+    </div>
+    <div class="src">出典：都内の新築分譲マンション供給戸数（東京カンテイ、2025年は9月時点）。</div>
+  </section>
+
+  <!-- 8 力4 -->
+  <section class="slide force-slide">
+    <span class="tag">力 4</span>
+    <h2>海外マネーの流入（円安）</h2>
+    <div class="force-grid">
+      <div class="force-text">
+        <p>円安で、海外の投資家から見ると日本の不動産は「セール中」。割安なので世界の資金が入ってくる。</p>
+        <div class="num-hero">国内不動産投資に占める海外勢の割合が拡大。2025年は投資額も増加</div>
+        <div class="note">買い手が世界に広がれば、値段はさらに上がる。</div>
+      </div>
+      <div class="force-fig"><img src="images/force4_kaigai.png" alt="国内不動産の投資額と海外投資家の割合の推移"></div>
+    </div>
+    <div class="src">出典：国内不動産の投資額と海外投資家の割合の推移（JLL）。</div>
+  </section>
+
+  <!-- 9 力5 -->
+  <section class="slide force-slide">
+    <span class="tag">力 5</span>
+    <h2>人とお金が都市に集中</h2>
+    <div class="force-grid">
+      <div class="force-text">
+        <p>人口は都心に集まり続け、共働きで世帯年収の高い世帯（パワーカップル）が高額物件を買える。</p>
+        <div class="num-hero">東京圏の転入超過は2025年も12万3,534人（東京都は6万5,219人）。コロナ後に再加速</div>
+        <div class="note">人が集まるほど、住まいの需要は厚くなる。</div>
+      </div>
+      <div class="force-fig"><img src="images/force5_jinko.jpg" alt="東京圏と東京都の転入超過数の推移"></div>
+    </div>
+    <div class="src">出典：東京圏・東京都の転入超過数（住民基本台帳人口移動報告、外国人含む。東京圏=東京・埼玉・千葉・神奈川）。</div>
+  </section>
+
+  <!-- 10 逆回転 -->
+  <section class="slide">
+    <div class="kicker">変わり目のサイン</div>
+    <h2>では、いつ流れが変わる？</h2>
+    <p>5つの力の一部が逆回転すると、市場は変わる。</p>
+    <ul>
+      <li>金利が大きく上がる → 借りられる額が減る（力1が逆回転）</li>
+      <li>円高に振れる → 海外マネーが引く（力4が逆回転）</li>
+    </ul>
+    <div class="note">「金利」と「為替」は、いま一番のウォッチポイント。</div>
+  </section>
+
+  <!-- 11 ワーク -->
+  <section class="slide work">
+    <div class="kicker">手を動かす（10分）</div>
+    <h2>自分の言葉にする</h2>
+    <div class="step"><b>① 図解（5分）</b>　白紙の真ん中に「家の値段が上がる」と書き、5つの力から矢印を引いて、自分の言葉で一言ずつ書き込む。人に説明できる状態にする。</div>
+    <div class="step"><b>② もし問題（5分）</b>　「もし日銀がもっと金利を上げたら、5つの力はどう動く？」を2人で1分ずつ話す。正解当てではなく、力同士のつながりを考えるのが目的。</div>
+  </section>
+
+  <!-- 12 接続 -->
+  <section class="slide">
+    <div class="kicker">ここが本題</div>
+    <h2>自分たちの仕事にどう効くか</h2>
+    <div class="two">
+      <div class="card">
+        <h3>訳あり不動産</h3>
+        <p>全体が値上がり＝古い家・訳ありの家でも、土地の価値に底上げが効きやすい。「ボロいから二束三文」とは限らない時代。</p>
+      </div>
+      <div class="card">
+        <h3>コール</h3>
+        <p>値段が高い＝売りたい人には「今が高く売れるチャンス」。相続した実家や空き家を手放したい動機が生まれる。それが問い合わせの背景。</p>
+      </div>
+    </div>
+    <div class="note">数字そのものより、「お客さんが今どんな気持ちで連絡してくるのか」を大きな流れから想像できることが大事。</div>
+  </section>
+
+  <!-- 13 まとめ -->
+  <section class="slide">
+    <div class="kicker">まとめ</div>
+    <h2>今日の3行</h2>
+    <ul>
+      <li>価格は気分ではなく、金利・建築費・供給・海外マネー・人の集中で動く</li>
+      <li>今は「最高値かつ過去最少供給」。簡単には下がらないが、金利と為替が変わり目のサイン</li>
+      <li>この波の上で、売りたい人の相談が生まれている。それが自分たちの仕事の入口</li>
+    </ul>
+    <div class="note">出典：不動産経済研究所／LIFULL HOME'S PRESS／nippon.com／モゲチェック／三菱地所リアルエステートサービス／JLL（2025〜2026年時点）</div>
+  </section>
+
+  <footer>
+    <span>新人研修 4日目｜不動産価格が上がっている仕組み</span>
+    <span id="pageno">1 / 13</span>
+  </footer>
+</div>
+<div class="hint">← → / スペースでめくる</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const pageno = document.getElementById('pageno');
+  const progress = document.getElementById('progress');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    pageno.textContent = (i + 1) + ' / ' + slides.length;
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); show(i + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); show(i - 1); }
+    if (e.key === 'Home'){ show(0); }
+    if (e.key === 'End'){ show(slides.length - 1); }
+  });
+  document.addEventListener('click', e => { if(!e.target.closest('a')) show(i + 1); });
+  show(0);
+</script>
+</body>
+</html>
