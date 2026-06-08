@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5日目　エリア相場マップ（仮説検証ワーク）</title>
+<style>
+  :root{
+    --navy:#15233f;
+    --navy-soft:#22365c;
+    --gold:#c8a45c;
+    --ink:#1d2430;
+    --muted:#6b7585;
+    --bg:#f4f1ea;
+    --line:#e2ddd2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,"Noto Sans JP",sans-serif;
+    background:#0d1626;
+    color:var(--ink);
+    overflow:hidden;
+  }
+  .deck{height:100vh;width:100vw;position:relative;}
+  .slide{
+    position:absolute;inset:0;
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    padding:6vh 8vw;
+    background:var(--bg);
+    opacity:0;
+    transition:opacity .25s ease;
+  }
+  .slide.active{display:flex;opacity:1;}
+  .kicker{
+    font-size:1.05rem;letter-spacing:.18em;color:var(--gold);
+    font-weight:700;margin-bottom:1.4rem;
+  }
+  h1{font-size:3.4rem;line-height:1.25;color:var(--navy);font-weight:800;letter-spacing:.01em;}
+  h2{font-size:2.5rem;line-height:1.3;color:var(--navy);font-weight:800;margin-bottom:1.6rem;}
+  .lead{font-size:1.4rem;color:var(--muted);margin-top:1.6rem;line-height:1.7;font-weight:500;}
+  p{font-size:1.35rem;line-height:1.8;color:var(--ink);}
+  ul{list-style:none;margin-top:.6rem;}
+  li{
+    font-size:1.4rem;line-height:1.7;padding:.55rem 0 .55rem 2rem;position:relative;color:var(--ink);
+  }
+  li::before{content:"";position:absolute;left:0;top:1.25rem;width:.7rem;height:.7rem;background:var(--gold);border-radius:2px;}
+  .tag{display:inline-block;background:var(--navy);color:#fff;font-size:1rem;font-weight:700;padding:.4rem 1rem;border-radius:999px;margin-bottom:1.4rem;letter-spacing:.05em;}
+  .note{margin-top:1.8rem;font-size:1.15rem;color:var(--muted);border-left:4px solid var(--gold);padding-left:1.2rem;line-height:1.7;}
+  .cover{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-soft) 100%);}
+  .cover .kicker{color:var(--gold);}
+  .cover h1{color:#fff;}
+  .cover .lead{color:#c7d0e0;}
+  .cover .meta{margin-top:3rem;color:#9fb0cc;font-size:1.1rem;letter-spacing:.05em;}
+  .closing{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-soft) 100%);}
+  .closing .kicker{color:var(--gold);}
+  .closing h2{color:#fff;}
+  .closing li{color:#e7ecf5;}
+  .closing .note{color:#aebbd2;border-left-color:var(--gold);}
+  .closing .src{color:#8593ad;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.8rem 2rem;}
+  .card h3{font-size:1.5rem;color:var(--navy);margin-bottom:1rem;font-weight:800;}
+  .work h2{color:var(--navy);}
+  .work .step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.4rem 1.8rem;margin-bottom:1.1rem;}
+  .work .step b{color:var(--gold);font-size:1.2rem;}
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-top:1.2rem;}
+  .flow .fstep{background:#fff;border:1px solid var(--line);border-top:5px solid var(--gold);border-radius:12px;padding:1.3rem 1rem;text-align:center;}
+  .flow .fstep .n{font-size:1.05rem;color:var(--gold);font-weight:800;}
+  .flow .fstep .t{font-size:1.25rem;font-weight:800;color:var(--navy);margin:.5rem 0;line-height:1.4;}
+  .flow .fstep .d{font-size:.95rem;color:var(--muted);line-height:1.5;}
+  .axes{display:grid;grid-template-columns:repeat(2,1fr);gap:1.4rem;margin-top:.4rem;}
+  .axis-card{background:#fff;border:1px solid var(--line);border-top:5px solid var(--gold);border-radius:12px;padding:1.4rem 1.6rem;}
+  .axis-card .n{font-size:1rem;color:var(--gold);font-weight:800;letter-spacing:.05em;}
+  .axis-card .t{font-size:1.5rem;font-weight:800;color:var(--navy);margin:.4rem 0 .6rem;}
+  .axis-card .d{font-size:1.1rem;color:var(--muted);line-height:1.6;}
+  .ranks{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:.4rem;}
+  .rank{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.4rem 1.5rem;box-shadow:0 8px 24px rgba(21,35,63,.06);}
+  .rank .head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:.7rem;margin-bottom:.9rem;}
+  .rank .label{font-size:1.4rem;font-weight:800;color:var(--navy);}
+  .rank .yen{font-size:.95rem;color:var(--gold);font-weight:800;}
+  .rank .wards{font-size:1.2rem;line-height:1.9;color:var(--ink);}
+  footer{position:absolute;bottom:2.2vh;left:8vw;right:8vw;display:flex;justify-content:space-between;align-items:center;font-size:.95rem;color:var(--muted);}
+  .progress{position:fixed;top:0;left:0;height:5px;background:var(--gold);width:0;transition:width .25s ease;z-index:10;}
+  .hint{position:fixed;bottom:14px;right:18px;font-size:.8rem;color:#9aa3b2;z-index:10;}
+  .src{margin-top:1.3rem;font-size:.9rem;color:#9aa3b2;letter-spacing:.01em;line-height:1.5;}
+  @media print{
+    body{overflow:visible;background:#fff;}
+    .slide{display:flex!important;opacity:1!important;position:relative;page-break-after:always;height:100vh;}
+    .progress,.hint{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 表紙 -->
+  <section class="slide cover active">
+    <div class="kicker">新人研修　5日目</div>
+    <h1>エリア相場マップ</h1>
+    <p class="lead">東京23区の地価を題材に、「仮説 → 検証 → 修正」を練習する30分</p>
+    <div class="meta">コール事業部 ／ 訳あり不動産事業部　新人研修</div>
+  </section>
+
+  <!-- 2 この回のゴール -->
+  <section class="slide">
+    <div class="kicker">この回のゴール</div>
+    <h2>地価を覚える日ではない</h2>
+    <p>題材は23区の地価だが、身につけるのは「仮説を立て、検証して、修正する」という、あらゆる仕事で使う基本動作。地図はその練習台。</p>
+    <ul>
+      <li>勘を、根拠のある読みに変える考え方を身につける</li>
+      <li>「どこがズレたか」を自分の言葉で説明できるようになる</li>
+      <li>外した理由を、構造（軸）で整理できるようになる</li>
+    </ul>
+    <div class="note">ゴールは「23区の相場を覚える」ではない。覚えるのは数字ではなく、考え方。</div>
+  </section>
+
+  <!-- 3 今日の流れ -->
+  <section class="slide">
+    <div class="kicker">今日の流れ</div>
+    <h2>5ステップで回す</h2>
+    <div class="flow">
+      <div class="fstep"><div class="n">STEP 1</div><div class="t">仮説</div><div class="d">23区を塗り分け、根拠を書く</div></div>
+      <div class="fstep"><div class="n">STEP 2</div><div class="t">検証</div><div class="d">実データで答え合わせ</div></div>
+      <div class="fstep"><div class="n">STEP 3</div><div class="t">修正</div><div class="d">ズレた原因を構造で整理</div></div>
+      <div class="fstep"><div class="n">STEP 4</div><div class="t">再仮説</div><div class="d">軸を使って別エリアを予想</div></div>
+      <div class="fstep"><div class="n">STEP 5</div><div class="t">一般化</div><div class="d">仕事の基本動作へ着地</div></div>
+    </div>
+    <div class="note">本人が考え、講師との対話で深掘りしていく。当たり外れの数は競わない。</div>
+  </section>
+
+  <!-- 4 ワーク：仮説を立てる -->
+  <section class="slide work">
+    <div class="kicker">STEP 1 ｜ 仮説を立てる（5分）</div>
+    <h2>まず、勘を仮説に変える</h2>
+    <div class="step"><b>① 塗り分ける</b>　白地図の23区を「高い・ふつう・安い」の3色で塗り分ける。直感でいい。まずは全区に色をつける。</div>
+    <div class="step"><b>② 根拠を書く</b>　各区に「なぜそう思ったか」を一言添える。例「港区は都心でオフィスが多そうだから高い」。根拠を書いた瞬間、勘が仮説になる。</div>
+    <div class="note">大事なのは色そのものより、「なぜそう塗ったか」を言葉にしておくこと。</div>
+  </section>
+
+  <!-- 5 検証する -->
+  <section class="slide">
+    <div class="kicker">STEP 2 ｜ 検証する（10分）</div>
+    <h2>当たり外れより、「どこがズレたか」</h2>
+    <p>実データで答え合わせをする。見るのは正解数ではなく、自分の仮説のどこが合い、どこがズレたか。</p>
+    <ul>
+      <li>外した区こそ宝。そこに「自分の思い込み」が眠っている</li>
+      <li>「文京区が予想より高かったのはなぜだと思う?」と問いを返し、対話で深める</li>
+      <li>合っていた区も「なぜ合っていたか」を言語化しておく</li>
+    </ul>
+    <div class="note">ズレを責めない。ズレは、次に効く発見の入口。</div>
+  </section>
+
+  <!-- 6 答え合わせ -->
+  <section class="slide">
+    <div class="kicker">STEP 2 ｜ 答え合わせ</div>
+    <h2>23区を3ランクで見る</h2>
+    <div class="ranks">
+      <div class="rank">
+        <div class="head"><span class="label">高い</span><span class="yen">家賃 11万円〜</span></div>
+        <div class="wards">港・千代田・中央<br>渋谷・目黒・新宿</div>
+      </div>
+      <div class="rank">
+        <div class="head"><span class="label">ふつう</span><span class="yen">8〜10万円台</span></div>
+        <div class="wards">文京・品川・世田谷・台東<br>豊島・江東 ほか</div>
+      </div>
+      <div class="rank">
+        <div class="head"><span class="label">安い</span><span class="yen">〜7万円台</span></div>
+        <div class="wards">板橋・練馬・江戸川<br>葛飾・足立</div>
+      </div>
+    </div>
+    <div class="note">よく外す「意外な区」＝文京（都心近接＋文教地区）／目黒（人気住宅地で収益力）／台東（浅草・上野の再開発で将来性）／中央（タワマン・商業地で突出）。</div>
+  </section>
+
+  <!-- 7 深掘り：4つの軸 -->
+  <section class="slide">
+    <div class="kicker">STEP 3 ｜ 深掘り（修正・構造化）</div>
+    <h2>地価を決める4つの軸</h2>
+    <div class="axes">
+      <div class="axis-card"><div class="n">軸 1</div><div class="t">利便性</div><div class="d">都心・駅への近さ。都心3区やターミナルに近いほど高い。通勤・生活の便利さが値段になる。</div></div>
+      <div class="axis-card"><div class="n">軸 2</div><div class="t">需要と供給</div><div class="d">住みたい人の数 対 土地の量。人気で土地が少ない区は高い。値段は「ほしい人」と「土地の量」のバランス。</div></div>
+      <div class="axis-card"><div class="n">軸 3</div><div class="t">将来性</div><div class="d">再開発・人口増が見込まれると、その将来価値が今の地価に織り込まれる（例：台東・品川）。</div></div>
+      <div class="axis-card"><div class="n">軸 4</div><div class="t">収益力</div><div class="d">貸したらいくら稼げる土地か。家賃が高く取れる土地は地価も高い。地価と家賃が連動するのはこのため。</div></div>
+    </div>
+    <div class="note">外した原因は、だいたいこの4つのどれかで説明できる。勘だった仮説が、構造で説明できる読みに変わる。</div>
+  </section>
+
+  <!-- 8 もう一度仮説 -->
+  <section class="slide">
+    <div class="kicker">STEP 4 ｜ もう一度仮説（5分）</div>
+    <h2>勘が、読みに変わる</h2>
+    <p>4つの軸を使って、まだ見ていない区（または近隣の市）を予想する。今度は直感ではなく、軸で説明しながら塗る。</p>
+    <ul>
+      <li>「ここは都心から遠いけど、再開発があるから将来性で上がりそう」と軸で語る</li>
+      <li>1回目より予想の精度が上がる実感を持つ</li>
+      <li>同じ4軸が、別のエリアでも使えることを確かめる</li>
+    </ul>
+    <div class="note">これが「修正」の成果。一度ズレを通したから、次は構造で当てにいける。</div>
+  </section>
+
+  <!-- 9 一般化 -->
+  <section class="slide">
+    <div class="kicker">STEP 5 ｜ 一般化（種明かし）</div>
+    <h2>今日の地図は、練習台だった</h2>
+    <p>やったのは「仮説 → 検証 → ズレの発見 → 修正 → 再挑戦」というサイクル。これは不動産だけの話ではない。</p>
+    <ul>
+      <li>見込み客の予測も、企画の当ても、クレーム対応も、全部この動作</li>
+      <li>勘で動くのではなく、根拠（仮説）を持って動き、結果で修正する人が伸びる</li>
+      <li>地価はたまたまの題材。身についたのは、仕事の基本動作そのもの</li>
+    </ul>
+    <div class="note">「地価を覚えた」で終わらせない。「考え方を手に入れた」で終える。</div>
+  </section>
+
+  <!-- 10 自社接続 -->
+  <section class="slide">
+    <div class="kicker">ここが本題</div>
+    <h2>自分たちの仕事も、仮説検証の連続</h2>
+    <div class="two">
+      <div class="card">
+        <h3>訳あり物件の査定</h3>
+        <p>「この立地・状態ならいくらか」を仮説で出し、相場や成約事例で検証して修正する。今日の4軸が、そのまま査定の見立てになる。</p>
+      </div>
+      <div class="card">
+        <h3>コールの顧客対応</h3>
+        <p>「この人はこういう状況では」と仮説を立て、会話で検証して修正していく。当てにいくのではなく、ズレたら直す姿勢が効く。</p>
+      </div>
+    </div>
+    <div class="note">今日の考え方が、そのまま現場の動き方になる。</div>
+  </section>
+
+  <!-- 11 まとめ -->
+  <section class="slide closing">
+    <div class="kicker">まとめ</div>
+    <h2>今日の3行</h2>
+    <ul>
+      <li>身につけたのは地価ではなく、「仮説 → 検証 → 修正」という仕事の基本動作</li>
+      <li>地価は4つの軸（利便性・需要と供給・将来性・収益力）で読み解ける</li>
+      <li>査定もコールも同じ。勘ではなく、根拠を持って動き、結果で直す</li>
+    </ul>
+    <div class="note">外した区が、いちばんの学びだった。ズレを歓迎できる人が伸びる。</div>
+    <div class="src">出典：土地代データ（tochidai.info）／PLAZA HOMES／野村不動産ソリューションズ／東京都財務局（2025〜2026年時点・数値は目安）</div>
+  </section>
+
+  <footer>
+    <span>新人研修 5日目｜エリア相場マップ（仮説検証ワーク）</span>
+    <span id="pageno">1 / 11</span>
+  </footer>
+</div>
+<div class="hint">← → / スペースでめくる</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const pageno = document.getElementById('pageno');
+  const progress = document.getElementById('progress');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    pageno.textContent = (i + 1) + ' / ' + slides.length;
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); show(i + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); show(i - 1); }
+    if (e.key === 'Home'){ show(0); }
+    if (e.key === 'End'){ show(slides.length - 1); }
+  });
+  document.addEventListener('click', e => { if(!e.target.closest('a')) show(i + 1); });
+  show(0);
+</script>
+</body>
+</html>
