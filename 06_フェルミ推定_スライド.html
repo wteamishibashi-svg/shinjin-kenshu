@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6日目　フェルミ推定（ワーク）</title>
+<style>
+  :root{
+    --navy:#15233f;
+    --navy-soft:#22365c;
+    --gold:#c8a45c;
+    --ink:#1d2430;
+    --muted:#6b7585;
+    --bg:#f4f1ea;
+    --line:#e2ddd2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,"Noto Sans JP",sans-serif;
+    background:#0d1626;
+    color:var(--ink);
+    overflow:hidden;
+  }
+  .deck{height:100vh;width:100vw;position:relative;}
+  .slide{
+    position:absolute;inset:0;
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    padding:6vh 8vw;
+    background:var(--bg);
+    opacity:0;
+    transition:opacity .25s ease;
+  }
+  .slide.active{display:flex;opacity:1;}
+  .kicker{
+    font-size:1.05rem;letter-spacing:.18em;color:var(--gold);
+    font-weight:700;margin-bottom:1.4rem;
+  }
+  h1{font-size:3.4rem;line-height:1.25;color:var(--navy);font-weight:800;letter-spacing:.01em;}
+  h2{font-size:2.5rem;line-height:1.3;color:var(--navy);font-weight:800;margin-bottom:1.6rem;}
+  .lead{font-size:1.4rem;color:var(--muted);margin-top:1.6rem;line-height:1.7;font-weight:500;}
+  p{font-size:1.35rem;line-height:1.8;color:var(--ink);}
+  ul{list-style:none;margin-top:.6rem;}
+  li{
+    font-size:1.4rem;line-height:1.7;padding:.55rem 0 .55rem 2rem;position:relative;color:var(--ink);
+  }
+  li::before{content:"";position:absolute;left:0;top:1.25rem;width:.7rem;height:.7rem;background:var(--gold);border-radius:2px;}
+  .tag{display:inline-block;background:var(--navy);color:#fff;font-size:1rem;font-weight:700;padding:.4rem 1rem;border-radius:999px;margin-bottom:1.4rem;letter-spacing:.05em;}
+  .note{margin-top:1.8rem;font-size:1.15rem;color:var(--muted);border-left:4px solid var(--gold);padding-left:1.2rem;line-height:1.7;}
+  .cover{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-soft) 100%);}
+  .cover .kicker{color:var(--gold);}
+  .cover h1{color:#fff;}
+  .cover .lead{color:#c7d0e0;}
+  .cover .meta{margin-top:3rem;color:#9fb0cc;font-size:1.1rem;letter-spacing:.05em;}
+  .closing{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-soft) 100%);}
+  .closing .kicker{color:var(--gold);}
+  .closing h2{color:#fff;}
+  .closing li{color:#e7ecf5;}
+  .closing .note{color:#aebbd2;border-left-color:var(--gold);}
+  .closing .src{color:#8593ad;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.8rem 2rem;}
+  .card h3{font-size:1.5rem;color:var(--navy);margin-bottom:1rem;font-weight:800;}
+  .work h2{color:var(--navy);}
+  .work .step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.4rem 1.8rem;margin-bottom:1.1rem;}
+  .work .step b{color:var(--gold);font-size:1.2rem;}
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-top:1.2rem;}
+  .flow .fstep{background:#fff;border:1px solid var(--line);border-top:5px solid var(--gold);border-radius:12px;padding:1.3rem 1rem;text-align:center;}
+  .flow .fstep .n{font-size:1.05rem;color:var(--gold);font-weight:800;}
+  .flow .fstep .t{font-size:1.25rem;font-weight:800;color:var(--navy);margin:.5rem 0;line-height:1.4;}
+  .flow .fstep .d{font-size:.95rem;color:var(--muted);line-height:1.5;}
+  .axes{display:grid;grid-template-columns:repeat(2,1fr);gap:1.4rem;margin-top:.4rem;}
+  .axis-card{background:#fff;border:1px solid var(--line);border-top:5px solid var(--gold);border-radius:12px;padding:1.4rem 1.6rem;}
+  .axis-card .n{font-size:1rem;color:var(--gold);font-weight:800;letter-spacing:.05em;}
+  .axis-card .t{font-size:1.5rem;font-weight:800;color:var(--navy);margin:.4rem 0 .6rem;}
+  .axis-card .d{font-size:1.1rem;color:var(--muted);line-height:1.6;}
+  .big-stats{display:flex;gap:1.6rem;flex-wrap:wrap;margin-top:1.3rem;}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.5rem 1.7rem;min-width:215px;flex:1;box-shadow:0 8px 24px rgba(21,35,63,.06);}
+  .stat .num{font-size:2.7rem;font-weight:800;color:var(--navy);line-height:1.1;}
+  .stat .num small{font-size:1.2rem;color:var(--gold);font-weight:800;margin-left:.3rem;}
+  .stat .cap{font-size:1.02rem;color:var(--muted);margin-top:.5rem;line-height:1.5;}
+  .calc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.5rem 1.9rem;margin-top:.4rem;box-shadow:0 8px 24px rgba(21,35,63,.06);}
+  .calc .row{display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;font-size:1.35rem;line-height:1.7;color:var(--ink);padding:.35rem 0;}
+  .calc .row .lbl{color:var(--muted);min-width:8.5rem;font-size:1.1rem;}
+  .calc .row .val{font-weight:800;color:var(--navy);}
+  .calc .op{color:var(--gold);font-weight:800;margin:0 .2rem;}
+  .calc .result{border-top:1px solid var(--line);margin-top:.6rem;padding-top:.9rem;font-size:1.55rem;}
+  .calc .result .val{color:var(--gold);}
+  footer{position:absolute;bottom:2.2vh;left:8vw;right:8vw;display:flex;justify-content:space-between;align-items:center;font-size:.95rem;color:var(--muted);}
+  .progress{position:fixed;top:0;left:0;height:5px;background:var(--gold);width:0;transition:width .25s ease;z-index:10;}
+  .hint{position:fixed;bottom:14px;right:18px;font-size:.8rem;color:#9aa3b2;z-index:10;}
+  .src{margin-top:1.3rem;font-size:.9rem;color:#9aa3b2;letter-spacing:.01em;line-height:1.5;}
+  @media print{
+    body{overflow:visible;background:#fff;}
+    .slide{display:flex!important;opacity:1!important;position:relative;page-break-after:always;height:100vh;}
+    .progress,.hint{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 表紙 -->
+  <section class="slide cover active">
+    <div class="kicker">新人研修　6日目</div>
+    <h1>フェルミ推定</h1>
+    <p class="lead">わからない数字を、自分で前提を置いて、掛け算で概算する30分</p>
+    <div class="meta">コール事業部 ／ 訳あり不動産事業部　新人研修</div>
+  </section>
+
+  <!-- 2 この回のゴール -->
+  <section class="slide">
+    <div class="kicker">この回のゴール</div>
+    <h2>空き家の数を覚える日ではない</h2>
+    <p>題材は自社の不動産ビジネスだが、身につけるのは「数字で概算する力」と「仮説思考」という、あらゆる仕事で使う社会人スキル。正確な正解は要らない。</p>
+    <ul>
+      <li>わからない数字を、掛け算に分解して概算できるようになる</li>
+      <li>正確さより「桁（オーダー）で当てにいく」感覚を身につける</li>
+      <li>市場の大きさや見込みの数を、自分の言葉と数字でざっくり語れる</li>
+    </ul>
+    <div class="note">仕事は、誰も正確な数字を知らないことについて、根拠のある概算を出して動くことの連続。今日はその練習。</div>
+  </section>
+
+  <!-- 3 今日の流れ -->
+  <section class="slide">
+    <div class="kicker">今日の流れ</div>
+    <h2>概算して、対話で深掘りする</h2>
+    <div class="flow">
+      <div class="fstep"><div class="n">STEP 1</div><div class="t">導入</div><div class="d">フェルミ推定とは何かを一言で</div></div>
+      <div class="fstep"><div class="n">STEP 2</div><div class="t">お題1</div><div class="d">まず自力で分解して概算する</div></div>
+      <div class="fstep"><div class="n">STEP 3</div><div class="t">分解の型</div><div class="d">講師と検証し、型を学ぶ</div></div>
+      <div class="fstep"><div class="n">STEP 4</div><div class="t">お題2</div><div class="d">型を使って自社直結で再挑戦</div></div>
+      <div class="fstep"><div class="n">STEP 5</div><div class="t">一般化</div><div class="d">社会人スキルへ着地</div></div>
+    </div>
+    <div class="note">本人が紙に分解して概算し、講師との対話で検証・深掘りしていく。当たり外れの正確さは競わない。</div>
+  </section>
+
+  <!-- 4 お題1 -->
+  <section class="slide work">
+    <div class="kicker">お題 1 ｜ まずは自力で（8分）</div>
+    <h2>この国に空き家は何軒あるか？</h2>
+    <p>白紙に、自力で分解してみる。わからなくていい。正解を知らないまま、掛け算の形に組み立てるのがこのお題。</p>
+    <div class="step"><b>① 分けて掛け算にする</b>　いきなり答えを出そうとしない。「全体で家は何軒くらいありそうか」から入り、そこに割合を掛けていく。</div>
+    <div class="step"><b>② 声に出して説明する</b>　出てきた数字を、どんな前提でそう置いたか自分の言葉で説明する。前提を言葉にした瞬間、勘が概算になる。</div>
+    <div class="note">手が止まったら入口だけ確認する。「全部で家は何軒くらいありそう?」——前提の置き方だけ伴走し、答えは言わない。</div>
+  </section>
+
+  <!-- 5 分解の型 -->
+  <section class="slide">
+    <div class="kicker">分解の型 ｜ 深掘り（今日の核）</div>
+    <h2>大きな数は、掛け算に分けられる</h2>
+    <div class="axes">
+      <div class="axis-card"><div class="n">型 1</div><div class="t">母数 × 割合 × 頻度</div><div class="d">大きな数は小さな数の掛け算に必ず分けられる。「空き家数 ＝ 総住宅数 × 空き家率」。足し算ではなく掛け算で組む。</div></div>
+      <div class="axis-card"><div class="n">型 2</div><div class="t">前提は自分で置く</div><div class="d">「空き家率を1割強とする」——仮定でいい。正確な数字を知らなくても、もっともらしい前提を置けば前に進める。</div></div>
+      <div class="axis-card"><div class="n">型 3</div><div class="t">桁（オーダー）で当てる</div><div class="d">840万 vs 900万のように、桁が合えば実用上は勝ち。1.2倍ずれても判断は変わらない。逆に桁を外すと致命的。</div></div>
+      <div class="axis-card"><div class="n">型 4</div><div class="t">別ルートで検算する</div><div class="d">別の道筋でも出してみて、近い桁になれば信頼できる。1本目を疑い、2本目で裏を取る。見積もり全般で効く習慣。</div></div>
+    </div>
+    <div class="note">勘で出した数字が、型で説明できる概算に変わる。これが今日いちばん持ち帰ってほしい考え方。</div>
+  </section>
+
+  <!-- 6 答え合わせ -->
+  <section class="slide">
+    <div class="kicker">お題 1 ｜ 答え合わせ（実データ）</div>
+    <h2>桁が合っていれば、大成功</h2>
+    <div class="big-stats">
+      <div class="stat"><div class="num">約900<small>万戸</small></div><div class="cap">空き家数（過去最多）<br>空き家率 13.8%（過去最高）</div></div>
+      <div class="stat"><div class="num">約6502<small>万戸</small></div><div class="cap">総住宅数<br>総世帯数 約5621万世帯</div></div>
+      <div class="stat"><div class="num">約55<small>%</small></div><div class="cap">空き家の取得経緯が「相続」<br>相続が空き家化の最大の入口</div></div>
+    </div>
+    <div class="note">本質は「住宅が世帯より多い＝余っている」という構造に気づけたか。概算例（約6500万戸 × 0.13 ≒ 840万戸）と実数900万戸は、桁がぴったり合う。</div>
+    <div class="src">出典：総務省統計局「令和5年 住宅・土地統計調査」／国土交通省「空き家所有者実態調査」</div>
+  </section>
+
+  <!-- 7 お題2 -->
+  <section class="slide">
+    <div class="kicker">お題 2 ｜ 自社直結（6分）</div>
+    <h2>家を売りたい人は、年に何件生まれるか？</h2>
+    <p>このエリアで「家を売りたい人」は年に何件生まれるか。これがそのまま自社の見込み客の母数になる。今度は型を使い、母数 → 割合 → 頻度の順に分解する。</p>
+    <div class="calc">
+      <div class="row"><span class="lbl">母数</span><span class="val">年間死亡者数 約160万人</span><span class="op">→</span><span>相続発生 ≒ 年160万件</span></div>
+      <div class="row"><span class="lbl">× 家が絡む割合</span><span class="op">×</span><span class="val">0.5〜0.6</span><span class="op">→</span><span>家が相続される ≒ 年80〜100万件</span></div>
+      <div class="row"><span class="lbl">× 売りたい割合</span><span class="op">×</span><span class="val">0.25</span><span class="op">→</span><span>全国で年20〜25万件の売却ニーズ</span></div>
+      <div class="row result"><span class="lbl">÷ エリアの人口シェア</span><span class="op">→</span><span class="val">年2,000〜2,500件（自社エリアの見込み客）</span></div>
+    </div>
+    <div class="note">エリアの母数は「人口シェアで全国から割り戻す」と桁が出せる。これが自社の見込み客の母数の考え方そのもの。</div>
+  </section>
+
+  <!-- 8 一般化 -->
+  <section class="slide">
+    <div class="kicker">一般化（種明かし）</div>
+    <h2>これは不動産だけの話ではない</h2>
+    <p>やったのは「大きな未知の数を、掛け算に分解し、前提を置いて、桁で概算し、別ルートで検算する」サイクル。見積もりと仮説思考は、全部の仕事で使う。</p>
+    <ul>
+      <li>営業目標の根拠づくりも、新しい企画の規模感も、来月の見込みの計算も、全部この動作</li>
+      <li>「わからないから動けない」ではなく「仮で概算して、まず動く」。あとから実数で直せばいい</li>
+      <li>不動産はたまたまの題材。身についたのは、社会人として使える基本動作そのもの</li>
+    </ul>
+    <div class="note">仮定を置いて動ける人が強い。これができる人が伸びる。</div>
+  </section>
+
+  <!-- 9 自社への接続 -->
+  <section class="slide">
+    <div class="kicker">ここが本題</div>
+    <h2>自社の市場を、自分の数字で語れるように</h2>
+    <div class="two">
+      <div class="card">
+        <h3>見込み客の母数</h3>
+        <p>「このエリアで相続は年に何件、うち家が絡むのが何件、売却に動くのが何件、だから自社の見込み客は年◯◯件」。これを暗記ではなく分解で言えるのがゴール。</p>
+      </div>
+      <div class="card">
+        <h3>なぜ問い合わせが来るのか</h3>
+        <p>「遠方の実家を相続した」という入口が全国から来るのは、年160万件の死亡・約55%が相続という空き家化の構造の上に乗っているから。今日の概算がその裏付けになる。</p>
+      </div>
+    </div>
+    <div class="note">営業目標もエリア戦略も、この「母数 × 割合」で根拠を持って語れるようにしておく。</div>
+  </section>
+
+  <!-- 10 まとめ -->
+  <section class="slide closing">
+    <div class="kicker">まとめ</div>
+    <h2>今日の3行</h2>
+    <ul>
+      <li>身につけたのは空き家の数ではなく、「分解 → 前提 → 桁で概算 → 検算」という社会人スキル</li>
+      <li>大きな未知の数は、母数 × 割合 × 頻度の掛け算に分けて、桁で当てにいく</li>
+      <li>自社の市場規模・見込み客数を、自分の言葉と数字でざっくり語れるのがゴール</li>
+    </ul>
+    <div class="note">わからないから止まるのではなく、仮で概算して動く。あとから実数で直せばいい。</div>
+    <div class="src">出典：総務省「住宅・土地統計調査」／厚生労働省「人口動態統計」／国税庁「相続税の申告事績」／国土交通省「空き家所有者実態調査」（2023〜2025年時点・数値は目安）</div>
+  </section>
+
+  <footer>
+    <span>新人研修 6日目｜フェルミ推定（ワーク）</span>
+    <span id="pageno">1 / 10</span>
+  </footer>
+</div>
+<div class="hint">← → / スペースでめくる</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const pageno = document.getElementById('pageno');
+  const progress = document.getElementById('progress');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    pageno.textContent = (i + 1) + ' / ' + slides.length;
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); show(i + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); show(i - 1); }
+    if (e.key === 'Home'){ show(0); }
+    if (e.key === 'End'){ show(slides.length - 1); }
+  });
+  document.addEventListener('click', e => { if(!e.target.closest('a')) show(i + 1); });
+  show(0);
+</script>
+</body>
+</html>
