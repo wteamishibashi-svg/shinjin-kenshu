@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7日目　優先順位シミュレーション（ワーク）</title>
+<style>
+  :root{
+    --navy:#15233f;
+    --navy-soft:#22365c;
+    --gold:#c8a45c;
+    --ink:#1d2430;
+    --muted:#6b7585;
+    --bg:#f4f1ea;
+    --line:#e2ddd2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,"Noto Sans JP",sans-serif;
+    background:#0d1626;
+    color:var(--ink);
+    overflow:hidden;
+  }
+  .deck{height:100vh;width:100vw;position:relative;}
+  .slide{
+    position:absolute;inset:0;
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    padding:6vh 8vw;
+    background:var(--bg);
+    opacity:0;
+    transition:opacity .25s ease;
+  }
+  .slide.active{display:flex;opacity:1;}
+  .kicker{
+    font-size:1.05rem;letter-spacing:.18em;color:var(--gold);
+    font-weight:700;margin-bottom:1.4rem;
+  }
+  h1{font-size:3.4rem;line-height:1.25;color:var(--navy);font-weight:800;letter-spacing:.01em;}
+  h2{font-size:2.5rem;line-height:1.3;color:var(--navy);font-weight:800;margin-bottom:1.6rem;}
+  .lead{font-size:1.4rem;color:var(--muted);margin-top:1.6rem;line-height:1.7;font-weight:500;}
+  p{font-size:1.35rem;line-height:1.8;color:var(--ink);}
+  ul{list-style:none;margin-top:.6rem;}
+  li{
+    font-size:1.4rem;line-height:1.7;padding:.55rem 0 .55rem 2rem;position:relative;color:var(--ink);
+  }
+  li::before{content:"";position:absolute;left:0;top:1.25rem;width:.7rem;height:.7rem;background:var(--gold);border-radius:2px;}
+  .tag{display:inline-block;background:var(--navy);color:#fff;font-size:1rem;font-weight:700;padding:.4rem 1rem;border-radius:999px;margin-bottom:1.4rem;letter-spacing:.05em;}
+  .note{margin-top:1.8rem;font-size:1.15rem;color:var(--muted);border-left:4px solid var(--gold);padding-left:1.2rem;line-height:1.7;}
+  .cover{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-soft) 100%);}
+  .cover .kicker{color:var(--gold);}
+  .cover h1{color:#fff;}
+  .cover .lead{color:#c7d0e0;}
+  .cover .meta{margin-top:3rem;color:#9fb0cc;font-size:1.1rem;letter-spacing:.05em;}
+  .closing{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-soft) 100%);}
+  .closing .kicker{color:var(--gold);}
+  .closing h2{color:#fff;}
+  .closing li{color:#e7ecf5;}
+  .closing .note{color:#aebbd2;border-left-color:var(--gold);}
+  .closing .src{color:#8593ad;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.8rem 2rem;}
+  .card h3{font-size:1.5rem;color:var(--navy);margin-bottom:1rem;font-weight:800;}
+  .work h2{color:var(--navy);}
+  .work .step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.4rem 1.8rem;margin-bottom:1.1rem;}
+  .work .step b{color:var(--gold);font-size:1.2rem;}
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-top:1.2rem;}
+  .flow .fstep{background:#fff;border:1px solid var(--line);border-top:5px solid var(--gold);border-radius:12px;padding:1.3rem 1rem;text-align:center;}
+  .flow .fstep .n{font-size:1.05rem;color:var(--gold);font-weight:800;}
+  .flow .fstep .t{font-size:1.25rem;font-weight:800;color:var(--navy);margin:.5rem 0;line-height:1.4;}
+  .flow .fstep .d{font-size:.95rem;color:var(--muted);line-height:1.5;}
+  .axes{display:grid;grid-template-columns:repeat(2,1fr);gap:1.4rem;margin-top:.4rem;}
+  .axis-card{background:#fff;border:1px solid var(--line);border-top:5px solid var(--gold);border-radius:12px;padding:1.4rem 1.6rem;}
+  .axis-card .n{font-size:1rem;color:var(--gold);font-weight:800;letter-spacing:.05em;}
+  .axis-card .t{font-size:1.5rem;font-weight:800;color:var(--navy);margin:.4rem 0 .6rem;}
+  .axis-card .d{font-size:1.1rem;color:var(--muted);line-height:1.6;}
+  /* タスク一覧（2カラム） */
+  .tasklists{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:.4rem;align-items:start;}
+  .tasklist{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.4rem 1.7rem;box-shadow:0 8px 24px rgba(21,35,63,.06);}
+  .tasklist h3{font-size:1.35rem;color:var(--navy);font-weight:800;margin-bottom:.9rem;border-bottom:1px solid var(--line);padding-bottom:.6rem;}
+  .tasklist ul{margin-top:0;}
+  .tasklist li{font-size:1.1rem;line-height:1.5;padding:.4rem 0 .4rem 1.5rem;}
+  .tasklist li::before{top:.95rem;width:.5rem;height:.5rem;}
+  .tasklist li .due{color:var(--gold);font-weight:800;font-size:.95rem;margin-left:.4rem;}
+  /* タイムライン */
+  .timeline{display:grid;grid-template-columns:repeat(9,1fr);gap:.5rem;margin-top:1.2rem;}
+  .timeline .slot{background:#fff;border:1px solid var(--line);border-top:5px solid var(--gold);border-radius:10px;padding:1rem .5rem;text-align:center;}
+  .timeline .slot.lunch{border-top-color:var(--muted);background:#efece4;}
+  .timeline .slot .hr{font-size:1.05rem;font-weight:800;color:var(--navy);}
+  .timeline .slot .mk{font-size:.85rem;color:var(--muted);margin-top:.3rem;line-height:1.3;min-height:2.2em;}
+  /* 4象限 */
+  .matrix{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2rem;margin-top:.4rem;}
+  .quad{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.3rem 1.6rem;}
+  .quad.do{border-top:5px solid var(--gold);}
+  .quad.plan{border-top:5px solid var(--navy);}
+  .quad.quick{border-top:5px solid var(--muted);}
+  .quad.drop{border-top:5px solid var(--line);}
+  .quad .n{font-size:1rem;color:var(--gold);font-weight:800;letter-spacing:.04em;}
+  .quad .t{font-size:1.4rem;font-weight:800;color:var(--navy);margin:.3rem 0 .5rem;}
+  .quad .d{font-size:1.08rem;color:var(--muted);line-height:1.55;}
+  .quad .ex{font-size:.98rem;color:var(--ink);margin-top:.5rem;}
+  .quad .ex b{color:var(--gold);}
+  footer{position:absolute;bottom:2.2vh;left:8vw;right:8vw;display:flex;justify-content:space-between;align-items:center;font-size:.95rem;color:var(--muted);}
+  .progress{position:fixed;top:0;left:0;height:5px;background:var(--gold);width:0;transition:width .25s ease;z-index:10;}
+  .hint{position:fixed;bottom:14px;right:18px;font-size:.8rem;color:#9aa3b2;z-index:10;}
+  .src{margin-top:1.3rem;font-size:.9rem;color:#9aa3b2;letter-spacing:.01em;line-height:1.5;}
+  @media print{
+    body{overflow:visible;background:#fff;}
+    .slide{display:flex!important;opacity:1!important;position:relative;page-break-after:always;height:100vh;}
+    .progress,.hint{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 表紙 -->
+  <section class="slide cover active">
+    <div class="kicker">新人研修　7日目</div>
+    <h1>優先順位シミュレーション</h1>
+    <p class="lead">山積みの1日を、自分の手でさばいてみる30分</p>
+    <div class="meta">コール事業部 ／ 訳あり不動産事業部　新人研修</div>
+  </section>
+
+  <!-- 2 この回のゴール -->
+  <section class="slide">
+    <div class="kicker">この回のゴール</div>
+    <h2>優先順位をつける力を、体で覚える</h2>
+    <p>身につけるのは「締切と、成果への効きを見極めて、何を先にやるか・何をやらないかを決める力」。あらゆる仕事で使う社会人スキル。題材は架空の「山積みの1日」。</p>
+    <ul>
+      <li>限られた時間の中で、今日やること・やらないことを自分で決められるようになる</li>
+      <li>締切（緊急）と、大事さ（重要）を別の物差しで見られるようになる</li>
+      <li>計画が崩れても、軸を持って組み直せるようになる</li>
+    </ul>
+    <div class="note">今日は説明から入らない。まず1日をさばいてもらう。優先順位のやり方（型）は、最後に出てくる。</div>
+  </section>
+
+  <!-- 3 今日の流れ -->
+  <section class="slide">
+    <div class="kicker">今日の流れ</div>
+    <h2>さばいて、詰まって、深掘りする</h2>
+    <div class="flow">
+      <div class="fstep"><div class="n">STEP 1</div><div class="t">導入</div><div class="d">説明はしない、まずやる、と宣言</div></div>
+      <div class="fstep"><div class="n">STEP 2</div><div class="t">シミュレーション</div><div class="d">1日のタスクを自力で並べる</div></div>
+      <div class="fstep"><div class="n">STEP 3</div><div class="t">割り込み</div><div class="d">計画が崩れる。組み直す</div></div>
+      <div class="fstep"><div class="n">STEP 4</div><div class="t">深掘り</div><div class="d">迷いから原理を引き出す</div></div>
+      <div class="fstep"><div class="n">STEP 5</div><div class="t">自社接続</div><div class="d">実務とまとめへ着地</div></div>
+    </div>
+    <div class="note">本人が手を動かして1日を組み、講師との対話で詰まった所・迷った所から考え方を引き出していく。うまくさばけたかは競わない。</div>
+  </section>
+
+  <!-- 4 ワークの説明 -->
+  <section class="slide work">
+    <div class="kicker">シミュレーション ｜ まずは自力で（8分）</div>
+    <h2>山積みの1日を、9:00〜18:00に置く</h2>
+    <p>タスク一覧（締切・所要時間つき）を見て、タイムラインに置いていく。所要時間は与えてあるので見積もりは不要。何を先にやるか、何を今日やらないかの判断に集中する。</p>
+    <div class="step"><b>① 締切を守って置く</b>　昼休みは13:00で固定。締切のあるものは間に合うように置く。実働はおよそ8時間。</div>
+    <div class="step"><b>② 入りきらないものは外す</b>　全部はやれない。あふれたものは「今日やらない／明日に回す」の置き場へ移す。</div>
+    <div class="timeline">
+      <div class="slot"><div class="hr">9</div><div class="mk"></div></div>
+      <div class="slot"><div class="hr">10</div><div class="mk"></div></div>
+      <div class="slot"><div class="hr">11</div><div class="mk"></div></div>
+      <div class="slot"><div class="hr">12</div><div class="mk"></div></div>
+      <div class="slot lunch"><div class="hr">13</div><div class="mk">昼休み</div></div>
+      <div class="slot"><div class="hr">14</div><div class="mk"></div></div>
+      <div class="slot"><div class="hr">15</div><div class="mk"></div></div>
+      <div class="slot"><div class="hr">16</div><div class="mk"></div></div>
+      <div class="slot"><div class="hr">17</div><div class="mk"></div></div>
+    </div>
+  </section>
+
+  <!-- 5 タスク一覧 -->
+  <section class="slide work">
+    <div class="kicker">シミュレーション ｜ 今日のタスク</div>
+    <h2>これを1日に収める</h2>
+    <div class="tasklists">
+      <div class="tasklist">
+        <h3>今日のうちにやる必要がある</h3>
+        <ul>
+          <li>物件資料を上司に提出<span class="due">14:00／30分</span></li>
+          <li>お客様に折り返し電話<span class="due">午前中／10分</span></li>
+          <li>契約書の誤字を直して再送<span class="due">今日中／15分</span></li>
+          <li>明日の訪問アポの段取り<span class="due">今日中／20分</span></li>
+          <li>研修の宿題<span class="due">今日中／20分</span></li>
+        </ul>
+      </div>
+      <div class="tasklist">
+        <h3>今日じゃなくていい</h3>
+        <ul>
+          <li>経費精算<span class="due">月末／15分</span></li>
+          <li>来週の社内勉強会の準備<span class="due">来週／60分</span></li>
+          <li>同僚の手伝い（頼まれた）<span class="due">急ぎでない／30分</span></li>
+          <li>未読メール15件の処理<span class="due">玉石混交／30分</span></li>
+          <li>デスク周りの片付け／コピー用紙の発注／SNSチェック<span class="due">任意</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="note">所要時間の合計は、使える時間を超えるように作ってある。全部はやれない。だから「やらないこと」を決めることになる。</div>
+  </section>
+
+  <!-- 6 割り込み -->
+  <section class="slide work">
+    <div class="kicker">シミュレーション ｜ 合図</div>
+    <h2>たぶん、予定通りにはいかない</h2>
+    <p>きれいに組めた頃に、横から何かが入るかもしれない。現実の1日は、立てた計画のまま進むことのほうが少ない。</p>
+    <div class="step"><b>そのとき問われるのは</b>　崩れたあと、何を後ろにずらすか。何を今日やめるか。慌てず、軸で組み直せるか。</div>
+    <div class="note">割り込みは意地悪ではなく、現実の再現。詳しい内容は、その場で講師が口頭で出す。</div>
+  </section>
+
+  <!-- 7 深掘り：重要と緊急 -->
+  <section class="slide">
+    <div class="kicker">深掘り ｜ 今日の核</div>
+    <h2>重要度と緊急度は、別物</h2>
+    <p>さばいてみて、迷ったはず。「締切が近いから先にやる」と「大事だから先にやる」は、似ているようで違う。この2つは別の物差し。</p>
+    <ul>
+      <li>緊急度＝締切が近いか。すぐ反応したくなる、外から来るプレッシャー</li>
+      <li>重要度＝成果に効くか。急かされないが、自分の伸びに効く中身</li>
+      <li>人は放っておくと「緊急」ばかりに反応し、「重要だが急がない」が永遠に後回しになる</li>
+    </ul>
+    <div class="note">緊急の電話や締切に追われているうちに、勉強会の準備のような「重要だが急がない」ものが、いつまでも手つかずになる。心当たりがあるはず。</div>
+  </section>
+
+  <!-- 8 4象限 -->
+  <section class="slide">
+    <div class="kicker">深掘り ｜ 整理の型</div>
+    <h2>2つの軸で、4象限に分ける</h2>
+    <div class="matrix">
+      <div class="quad do"><div class="n">重要 × 緊急</div><div class="t">すぐやる</div><div class="d">締切が近く、成果にも効く。最優先で片づける。</div><div class="ex"><b>例</b>　14時締切の資料、待たせているお客様</div></div>
+      <div class="quad plan"><div class="n">重要 × 急がない</div><div class="t">計画して、時間を確保する</div><div class="d">大事だが締切は先。いつやるか自分で決めて先に枠を取る。ここを守れる人が伸びる。</div><div class="ex"><b>例</b>　勉強会の準備、明日のアポ段取り</div></div>
+      <div class="quad quick"><div class="n">急ぐ × 重要でない</div><div class="t">手早く／任せる</div><div class="d">締切はあるが成果には薄い。サッと片づけるか、人に任せる。</div><div class="ex"><b>例</b>　コピー用紙の発注、頼まれ仕事の一部</div></div>
+      <div class="quad drop"><div class="n">どちらでもない</div><div class="t">やらない</div><div class="d">急ぎでも大事でもない。今日のリストから外す。</div><div class="ex"><b>例</b>　なんとなくのSNSチェック</div></div>
+    </div>
+    <div class="note">差がつくのは左下「重要 × 急がない」。誰にも急かされないこの枠の時間を、自分で先に確保できるかどうかが、伸びる人と追われる人の分かれ目。</div>
+  </section>
+
+  <!-- 9 自社への接続 -->
+  <section class="slide">
+    <div class="kicker">ここが本題</div>
+    <h2>うちの1日も、締切と重要度が混ざる</h2>
+    <div class="two">
+      <div class="card">
+        <h3>コールの1日</h3>
+        <p>緊急の電話・問い合わせに追われやすい。その中で「重要だが急がない準備」——トークの振り返り、知識の仕込み——の時間を、自分でどう守るか。</p>
+      </div>
+      <div class="card">
+        <h3>訳ありの案件対応</h3>
+        <p>締切のある手続きと、じっくり考えるべき判断が混ざる。何を今日やり、何を明日に回すか。その連続が、案件を前に進める。</p>
+      </div>
+    </div>
+    <div class="note">緊急に追われながら、重要な準備の枠をどう先取りするか。これが現場で効く差になる。</div>
+  </section>
+
+  <!-- 10 まとめ -->
+  <section class="slide closing">
+    <div class="kicker">まとめ</div>
+    <h2>今日の3行</h2>
+    <ul>
+      <li>緊急度と重要度は別物。締切の近さと、成果への効きを、分けて見る</li>
+      <li>人は放っておくと緊急に飛びつく。「重要だが急がない」の時間を、自分で先に確保する</li>
+      <li>全部はやれない。今日やらないことを決めるのが、大事なことをやり切る技術</li>
+    </ul>
+    <div class="note">「今日やらないことを決める」は、サボりではない。大事なことをやり切るための技術。</div>
+  </section>
+
+  <footer>
+    <span>新人研修 7日目｜優先順位シミュレーション（ワーク）</span>
+    <span id="pageno">1 / 10</span>
+  </footer>
+</div>
+<div class="hint">← → / スペースでめくる</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const pageno = document.getElementById('pageno');
+  const progress = document.getElementById('progress');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    pageno.textContent = (i + 1) + ' / ' + slides.length;
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); show(i + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); show(i - 1); }
+    if (e.key === 'Home'){ show(0); }
+    if (e.key === 'End'){ show(slides.length - 1); }
+  });
+  document.addEventListener('click', e => { if(!e.target.closest('a')) show(i + 1); });
+  show(0);
+</script>
+</body>
+</html>
