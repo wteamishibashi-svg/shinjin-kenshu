@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8日目　サンクスギフトを活発にするアイデアを考える（ワーク）</title>
+<style>
+  :root{
+    --navy:#15233f;
+    --navy-soft:#22365c;
+    --gold:#c8a45c;
+    --ink:#1d2430;
+    --muted:#6b7585;
+    --bg:#f4f1ea;
+    --line:#e2ddd2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,"Noto Sans JP",sans-serif;
+    background:#0d1626;
+    color:var(--ink);
+    overflow:hidden;
+  }
+  .deck{height:100vh;width:100vw;position:relative;}
+  .slide{
+    position:absolute;inset:0;
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    padding:6vh 8vw;
+    background:var(--bg);
+    opacity:0;
+    transition:opacity .25s ease;
+  }
+  .slide.active{display:flex;opacity:1;}
+  .kicker{
+    font-size:1.05rem;letter-spacing:.18em;color:var(--gold);
+    font-weight:700;margin-bottom:1.4rem;
+  }
+  h1{font-size:3.4rem;line-height:1.25;color:var(--navy);font-weight:800;letter-spacing:.01em;}
+  h2{font-size:2.5rem;line-height:1.3;color:var(--navy);font-weight:800;margin-bottom:1.6rem;}
+  .lead{font-size:1.4rem;color:var(--muted);margin-top:1.6rem;line-height:1.7;font-weight:500;}
+  p{font-size:1.35rem;line-height:1.8;color:var(--ink);}
+  ul{list-style:none;margin-top:.6rem;}
+  li{
+    font-size:1.4rem;line-height:1.7;padding:.55rem 0 .55rem 2rem;position:relative;color:var(--ink);
+  }
+  li::before{content:"";position:absolute;left:0;top:1.25rem;width:.7rem;height:.7rem;background:var(--gold);border-radius:2px;}
+  .tag{display:inline-block;background:var(--navy);color:#fff;font-size:1rem;font-weight:700;padding:.4rem 1rem;border-radius:999px;margin-bottom:1.4rem;letter-spacing:.05em;}
+  .note{margin-top:1.8rem;font-size:1.15rem;color:var(--muted);border-left:4px solid var(--gold);padding-left:1.2rem;line-height:1.7;}
+  .cover{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-soft) 100%);}
+  .cover .kicker{color:var(--gold);}
+  .cover h1{color:#fff;}
+  .cover .lead{color:#c7d0e0;}
+  .cover .meta{margin-top:3rem;color:#9fb0cc;font-size:1.1rem;letter-spacing:.05em;}
+  .closing{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-soft) 100%);}
+  .closing .kicker{color:var(--gold);}
+  .closing h2{color:#fff;}
+  .closing li{color:#e7ecf5;}
+  .closing .note{color:#aebbd2;border-left-color:var(--gold);}
+  .closing .src{color:#8593ad;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.8rem 2rem;}
+  .card h3{font-size:1.5rem;color:var(--navy);margin-bottom:1rem;font-weight:800;}
+  .work h2{color:var(--navy);}
+  .work .step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.4rem 1.8rem;margin-bottom:1.1rem;}
+  .work .step b{color:var(--gold);font-size:1.2rem;}
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-top:1.2rem;}
+  .flow .fstep{background:#fff;border:1px solid var(--line);border-top:5px solid var(--gold);border-radius:12px;padding:1.3rem 1rem;text-align:center;}
+  .flow .fstep .n{font-size:1.05rem;color:var(--gold);font-weight:800;}
+  .flow .fstep .t{font-size:1.25rem;font-weight:800;color:var(--navy);margin:.5rem 0;line-height:1.4;}
+  .flow .fstep .d{font-size:.95rem;color:var(--muted);line-height:1.5;}
+  .axes{display:grid;grid-template-columns:repeat(2,1fr);gap:1.4rem;margin-top:.4rem;}
+  .axis-card{background:#fff;border:1px solid var(--line);border-top:5px solid var(--gold);border-radius:12px;padding:1.4rem 1.6rem;}
+  .axis-card .n{font-size:1rem;color:var(--gold);font-weight:800;letter-spacing:.05em;}
+  .axis-card .t{font-size:1.5rem;font-weight:800;color:var(--navy);margin:.4rem 0 .6rem;}
+  .axis-card .d{font-size:1.1rem;color:var(--muted);line-height:1.6;}
+  /* 磨く視点（3列） */
+  .lenses{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:.4rem;}
+  .lens{background:#fff;border:1px solid var(--line);border-top:5px solid var(--gold);border-radius:12px;padding:1.3rem 1.5rem;}
+  .lens .t{font-size:1.3rem;font-weight:800;color:var(--navy);margin-bottom:.5rem;line-height:1.4;}
+  .lens .d{font-size:1.02rem;color:var(--muted);line-height:1.55;}
+  /* 効果×手軽さ 2軸 */
+  .matrix{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2rem;margin-top:.4rem;}
+  .quad{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.3rem 1.6rem;}
+  .quad.do{border-top:5px solid var(--gold);}
+  .quad.plan{border-top:5px solid var(--navy);}
+  .quad.quick{border-top:5px solid var(--muted);}
+  .quad.drop{border-top:5px solid var(--line);}
+  .quad .n{font-size:1rem;color:var(--gold);font-weight:800;letter-spacing:.04em;}
+  .quad .t{font-size:1.4rem;font-weight:800;color:var(--navy);margin:.3rem 0 .5rem;}
+  .quad .d{font-size:1.08rem;color:var(--muted);line-height:1.55;}
+  footer{position:absolute;bottom:2.2vh;left:8vw;right:8vw;display:flex;justify-content:space-between;align-items:center;font-size:.95rem;color:var(--muted);}
+  .progress{position:fixed;top:0;left:0;height:5px;background:var(--gold);width:0;transition:width .25s ease;z-index:10;}
+  .hint{position:fixed;bottom:14px;right:18px;font-size:.8rem;color:#9aa3b2;z-index:10;}
+  .src{margin-top:1.3rem;font-size:.9rem;color:#9aa3b2;letter-spacing:.01em;line-height:1.5;}
+  @media print{
+    body{overflow:visible;background:#fff;}
+    .slide{display:flex!important;opacity:1!important;position:relative;page-break-after:always;height:100vh;}
+    .progress,.hint{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 表紙 -->
+  <section class="slide cover active">
+    <div class="kicker">新人研修　8日目</div>
+    <h1>サンクスギフトを<br>活発にするアイデアを考える</h1>
+    <p class="lead">会社の本物の課題を、自分ごととして考えてみる30分</p>
+    <div class="meta">コール事業部 ／ 訳あり不動産事業部　新人研修</div>
+  </section>
+
+  <!-- 2 この回のゴール -->
+  <section class="slide">
+    <div class="kicker">この回のゴール</div>
+    <h2>アイデアを考える癖と、当事者意識</h2>
+    <p>身につけるのは「会社の課題を他人事にせず、現状→なぜ→打ち手の順で考えて、自分の案を出す力」。与えられた仕事をこなすだけでなく、自分から動かす側に回るための土台。</p>
+    <ul>
+      <li>現状の課題に対して、まず量でアイデアを出せるようになる</li>
+      <li>「なぜそうなっているか」を原因から考えられるようになる</li>
+      <li>評論家でなく、自分が動かす側として案を持てるようになる</li>
+    </ul>
+    <div class="note">これは評価ではなく相談。今日は君のアイデアが欲しい。出た案は実際に検討する。だから本気で考えてほしい。</div>
+  </section>
+
+  <!-- 3 今日の流れ -->
+  <section class="slide">
+    <div class="kicker">今日の流れ</div>
+    <h2>現状を知り、出して、磨いて、決める</h2>
+    <div class="flow">
+      <div class="fstep"><div class="n">STEP 1</div><div class="t">現状の共有</div><div class="d">会社の本物の課題を相談する</div></div>
+      <div class="fstep"><div class="n">STEP 2</div><div class="t">なぜ使われない</div><div class="d">自分ごとで理由を挙げる</div></div>
+      <div class="fstep"><div class="n">STEP 3</div><div class="t">アイデアを出す</div><div class="d">質より量で出し切る</div></div>
+      <div class="fstep"><div class="n">STEP 4</div><div class="t">深掘り</div><div class="d">視点を足して磨き、選ぶ</div></div>
+      <div class="fstep"><div class="n">STEP 5</div><div class="t">具体化</div><div class="d">誰が・いつ・どうやるか</div></div>
+    </div>
+    <div class="note">本人が手を動かして理由とアイデアを書き出し、講師との対話で磨いていく。うまい案を競う場ではない。</div>
+  </section>
+
+  <!-- 4 現状の共有 -->
+  <section class="slide">
+    <div class="kicker">現状の共有 ｜ 会社の本物の課題</div>
+    <h2>サンクスギフトが、一部の人にしか使われていない</h2>
+    <p>社内でサンクスギフト（THANKS GIFT）を導入している。感謝をお互いに送り合う仕組み。ただ、今は一部の人しか使っていない。もっと送信数を増やして、活発にしたい。</p>
+    <ul>
+      <li>今やっていること：月1で、部署ごとの送付数対決</li>
+      <li>それはそれで続けつつ、もっと日常的に活発にしたい</li>
+      <li>今日のゴール：それ以上に活発にするアイデアを、君に出してもらう</li>
+    </ul>
+    <div class="note">当日、実際の送信数や利用率の数字を見せる。具体的な数字があるほど、自分ごとになる。</div>
+  </section>
+
+  <!-- 5 ワーク1 なぜ使われない -->
+  <section class="slide work">
+    <div class="kicker">ワーク1 ｜ 現状を自分ごとで（5分）</div>
+    <h2>なぜ、使われないんだろう？</h2>
+    <p>まず君自身に聞きたい。君は使っている？ 自分や周りが使わない（または使う）のは、なぜだと思う？ 思いつく理由を、紙にどんどん書き出してほしい。</p>
+    <div class="step"><b>考える糸口</b>　面倒・きっかけがない・恥ずかしい・忘れる・メリットを感じない・誰に送ればいいか分からない……。自分の正直な理由から入っていい。</div>
+    <div class="note">ここが当事者意識の入口。「みんな使わないですよね」で終わる他人事の評論にしない。自分はどうか、から考える。</div>
+  </section>
+
+  <!-- 6 ワーク2 アイデアを出す -->
+  <section class="slide work">
+    <div class="kicker">ワーク2 ｜ アイデアを出す（8分）</div>
+    <h2>どうすれば、使われるようになる？</h2>
+    <p>さっき挙げた理由をひっくり返すつもりで、「こうすれば使われるかも」を出していく。今は質より量。数が正義のフェーズ。</p>
+    <div class="step"><b>ルール ①　質より量</b>　いいか悪いかは後で考える。まずは数を出す。バカらしいと思う案も書いていい。</div>
+    <div class="step"><b>ルール ②　否定しない</b>　自分の案にも「どうせ無理」を言わない。手を止めずに、紙を埋めることに集中する。</div>
+    <div class="note">「君だったら、どんなときに送りたくなる？」——自分が送りたくなる場面から発想すると、案が出やすい。</div>
+  </section>
+
+  <!-- 7 深掘り：磨く視点 -->
+  <section class="slide">
+    <div class="kicker">深掘り ｜ アイデアを磨く視点（8分）</div>
+    <h2>出し切ったら、この視点で広げる</h2>
+    <p>ここまでで出た案を、次の視点で見直すと、足りない角度が見えてくる。新しい案を足したり、出た案を強くしたりするのに使う。</p>
+    <div class="lenses">
+      <div class="lens"><div class="t">ハードルを下げる</div><div class="d">送るのが面倒・難しいを減らす。定型文・スタンプ・スマホで一言・1タップで送れるように。</div></div>
+      <div class="lens"><div class="t">きっかけを仕込む</div><div class="d">送る場面を作る。朝会で1人1送信、何かしてもらったらその場で、1日の終わりに1通。</div></div>
+      <div class="lens"><div class="t">見える化・競争</div><div class="d">送信数や良い感謝を見えるように。個人ランキング、心に残った感謝の紹介、部署対決の発展形。</div></div>
+      <div class="lens"><div class="t">率先する人を作る</div><div class="d">先輩・上司が多く送る。もらうと、送り返したくなる。最初の一押しを誰かが担う。</div></div>
+      <div class="lens"><div class="t">意味づけ</div><div class="d">なぜ感謝を送り合うのか（人間関係・働きやすさ）を腹落ちさせる。やる理由を共有する。</div></div>
+    </div>
+  </section>
+
+  <!-- 8 深掘り：効果×手軽さで選ぶ -->
+  <section class="slide">
+    <div class="kicker">深掘り ｜ どれをやる？</div>
+    <h2>「効果 × 手軽さ」の2軸で選ぶ</h2>
+    <p>磨いて増えた案を、2つの物差しで見る。効果＝送信数が増えそうか。手軽さ＝すぐ試せるか。全部はやれないので、まずは1つに絞る。</p>
+    <div class="matrix">
+      <div class="quad do"><div class="n">効果 大 × 手軽</div><div class="t">まず、これから試す</div><div class="d">効きそうで、すぐ始められる。今日の持ち帰り候補はここから選ぶ。</div></div>
+      <div class="quad plan"><div class="n">効果 大 × 手間</div><div class="t">準備して、いずれやる</div><div class="d">効きそうだが、仕込みが要る。やるなら段取りを決めてから。</div></div>
+      <div class="quad quick"><div class="n">効果 小 × 手軽</div><div class="t">ついでにやる</div><div class="d">手軽なので、他とあわせてやってもいい。単体での優先度は低い。</div></div>
+      <div class="quad drop"><div class="n">効果 小 × 手間</div><div class="t">今はやらない</div><div class="d">効きも薄く、手間もかかる。今日のリストからは外す。</div></div>
+    </div>
+    <div class="note">最初の一歩は「手軽で効きそう」なものから。小さく試して手応えを見るのが、続けるコツ。</div>
+  </section>
+
+  <!-- 9 具体化 -->
+  <section class="slide work">
+    <div class="kicker">具体化 ｜ 動かせる形にする（6分）</div>
+    <h2>選んだアイデアを、誰が・いつ・どうやるか</h2>
+    <p>「いいアイデア」のままだと動かない。選んだ1つを、明日から実際にできる形まで落とす。ここまで決めれば、提案として持っていける。</p>
+    <div class="step"><b>誰が</b>　言い出した人がやるのか、全員でやるのか、最初に動く人は誰か。</div>
+    <div class="step"><b>いつ</b>　どのタイミングで・どのくらいの頻度で。朝会で／毎日終わりに／週1で、など。</div>
+    <div class="step"><b>どうやる</b>　具体的な手順。何を使い、どう声をかけ、どう続けるか。</div>
+    <div class="note">1つでいい。「これは試せそう」と思えるものを、形にして持ち帰る。それが今日の成果。</div>
+  </section>
+
+  <!-- 10 まとめ -->
+  <section class="slide closing">
+    <div class="kicker">まとめ</div>
+    <h2>今日の2つ</h2>
+    <ul>
+      <li>アイデアを出す癖。いきなり正解を探さず、まず量を出す。そして現状の原因から考える</li>
+      <li>当事者意識。「使われないですよね」で終わる評論家ではなく、自分が動かす側に回る</li>
+    </ul>
+    <div class="note">今日のアイデアは、本当に検討する。会社の課題を自分ごととして考えた、その姿勢こそが、これから一番効いてくる力になる。</div>
+  </section>
+
+  <footer>
+    <span>新人研修 8日目｜サンクスギフトを活発にするアイデアを考える（ワーク）</span>
+    <span id="pageno">1 / 10</span>
+  </footer>
+</div>
+<div class="hint">← → / スペースでめくる</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const pageno = document.getElementById('pageno');
+  const progress = document.getElementById('progress');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    pageno.textContent = (i + 1) + ' / ' + slides.length;
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); show(i + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); show(i - 1); }
+    if (e.key === 'Home'){ show(0); }
+    if (e.key === 'End'){ show(slides.length - 1); }
+  });
+  document.addEventListener('click', e => { if(!e.target.closest('a')) show(i + 1); });
+  show(0);
+</script>
+</body>
+</html>
